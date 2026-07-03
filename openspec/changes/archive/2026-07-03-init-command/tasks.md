@@ -51,5 +51,5 @@
 - [x] 4.4 Manually run `go run ./cmd/agents-lint init` in a scratch
       directory, then `go run ./cmd/agents-lint scan` on the result, and
       confirm the success line prints
-- [ ] 4.5 Commit with `feat(init-command): implement agents-lint init
+- [x] 4.5 Commit with `feat(init-command): implement agents-lint init
       (FR-CLI-03)`
