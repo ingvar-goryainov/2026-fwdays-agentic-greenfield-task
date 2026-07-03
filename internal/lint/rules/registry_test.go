@@ -21,6 +21,13 @@ func TestDefaultRules_FixedOrder(t *testing.T) {
 	}
 }
 
+func TestKnownRuleIDs(t *testing.T) {
+	want := []string{
+		rules.RuleS001, rules.RuleS002, rules.RuleS003, rules.RuleS004, rules.RuleS005,
+	}
+	assert.Equal(t, want, rules.KnownRuleIDs())
+}
+
 func TestRun_MissingFileShortCircuits(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "does-not-exist.md")
 

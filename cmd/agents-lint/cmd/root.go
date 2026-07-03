@@ -11,7 +11,15 @@ var rootCmd = &cobra.Command{
 	Short: "agents-lint validates AGENTS.md files against a formal schema",
 }
 
+// configFlag holds the --config flag value (FR-CLI-04): a path that, when
+// set, overrides the default .agents-lint.yaml lookup location.
+var configFlag string
+
 // Execute runs the root command and returns any error encountered.
 func Execute() error {
 	return rootCmd.Execute()
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&configFlag, "config", "", "path to the config file (default: ./.agents-lint.yaml)")
 }

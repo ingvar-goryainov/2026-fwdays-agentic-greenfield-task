@@ -1,0 +1,3 @@
+rules:
+  S004:
+    severity: warning

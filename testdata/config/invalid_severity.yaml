@@ -1,0 +1,3 @@
+rules:
+  S002:
+    severity: critical
