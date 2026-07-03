@@ -41,6 +41,18 @@ func (C001) Check(doc *lint.Document, repoRoot string) []lint.Finding {
 	return findings
 }
 
+// Doc documents FR-C001 (FR-CLI-07).
+func (C001) Doc() lint.RuleDoc {
+	return lint.RuleDoc{
+		ID:          RuleC001,
+		Description: "Every inline-code span that looks like a filesystem path (e.g. `internal/lint/rule.go`) must resolve to an existing file or directory relative to the repo root.",
+		Severity:    lint.SeverityError,
+		Valid:       "**Context:** `go.mod` and `internal/lint/rule.go`.",
+		Invalid:     "**Context:** `internal/does/not/exist.go`.",
+		FixGuidance: "Fix the path, or update/remove the reference if the file was moved, renamed, or deleted.",
+	}
+}
+
 // looksLikePath reports whether text is a plausible filesystem path
 // reference, per FR-C001's own "detected by ... patterns" wording: a
 // heuristic, not exact parsing. See design.md for the reasoning behind

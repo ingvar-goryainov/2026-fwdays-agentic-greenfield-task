@@ -73,3 +73,32 @@ func KnownRuleIDs() []string {
 	}
 	return ids
 }
+
+// documented is satisfied by any Rule/CodebaseRule whose concrete type
+// also implements Doc(). Kept local to this file rather than added to the
+// Rule/CodebaseRule interfaces themselves, so rule-docs-command stays
+// additive: existing call sites of Rule/CodebaseRule are unaffected.
+type documented interface {
+	Doc() lint.RuleDoc
+}
+
+// RuleDocs returns the human-facing documentation for every rule Run
+// evaluates, keyed by rule ID (FR-CLI-07). Mirrors KnownRuleIDs's set of
+// IDs; S001 is added directly since, like KnownRuleIDs, it runs outside
+// the Rule interface.
+func RuleDocs() map[string]lint.RuleDoc {
+	docs := map[string]lint.RuleDoc{
+		RuleS001: s001Doc(),
+	}
+	for _, r := range DefaultRules() {
+		if d, ok := r.(documented); ok {
+			docs[r.ID()] = d.Doc()
+		}
+	}
+	for _, r := range CodebaseAwareRules() {
+		if d, ok := r.(documented); ok {
+			docs[r.ID()] = d.Doc()
+		}
+	}
+	return docs
+}

@@ -28,3 +28,17 @@ func CheckFileExists(path string) *lint.Finding {
 	}
 	return nil
 }
+
+// s001Doc documents FR-S001 (FR-CLI-07). CheckFileExists has no receiver
+// type to hang a Doc() method off of, so this is a plain function the
+// registry calls directly, mirroring how KnownRuleIDs handles S001.
+func s001Doc() lint.RuleDoc {
+	return lint.RuleDoc{
+		ID:          RuleS001,
+		Description: "The target AGENTS.md file must exist at the resolved path before any other rule can run.",
+		Severity:    lint.SeverityError,
+		Valid:       "A file exists at the resolved path, e.g. ./AGENTS.md.",
+		Invalid:     "No file exists at the resolved path.",
+		FixGuidance: "Create AGENTS.md (e.g. run `agents-lint init`), or pass the correct path as the scan argument or via .agents-lint.yaml's `path:` key.",
+	}
+}
