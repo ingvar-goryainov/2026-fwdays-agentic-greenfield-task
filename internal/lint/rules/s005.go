@@ -33,3 +33,15 @@ func (S005) Check(doc *lint.Document) []lint.Finding {
 	}
 	return nil
 }
+
+// Doc documents FR-S005 (FR-CLI-07).
+func (S005) Doc() lint.RuleDoc {
+	return lint.RuleDoc{
+		ID:          RuleS005,
+		Description: "If the document has YAML frontmatter (delimited by `---`), it must parse as valid YAML. Files without frontmatter are not flagged.",
+		Severity:    lint.SeverityError,
+		Valid:       "---\nname: my-project\n---\n\n## Agents\n...\n",
+		Invalid:     "---\nname: \"unterminated\n---\n\n## Agents\n...\n",
+		FixGuidance: "Fix the YAML syntax error in the frontmatter block (check quoting, indentation, and colons), or remove the frontmatter entirely if it isn't needed.",
+	}
+}

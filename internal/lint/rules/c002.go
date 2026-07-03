@@ -62,6 +62,18 @@ func (C002) Check(doc *lint.Document, repoRoot string) []lint.Finding {
 	return findings
 }
 
+// Doc documents FR-C002 (FR-CLI-07).
+func (C002) Doc() lint.RuleDoc {
+	return lint.RuleDoc{
+		ID:          RuleC002,
+		Description: "Every inline-code span matching a recognized tool/command name (terraform, npm, yarn, pnpm, docker, go, make, cargo, kubectl, git) should have corresponding evidence at the repo root: a config file, lockfile, or marker file for that tool.",
+		Severity:    lint.SeverityWarning,
+		Valid:       "Built with `go`. (repo root has go.mod)",
+		Invalid:     "Deployed with `kubectl`. (repo root has no k8s/, kubernetes/, or kustomization.yaml)",
+		FixGuidance: "Confirm the tool is actually used and add the expected evidence file at the repo root, or remove the reference from AGENTS.md if it's stale.",
+	}
+}
+
 // hasEvidence reports whether any of patterns is present directly at
 // repoRoot (non-recursive — see design.md's Non-Goals). Glob-shaped
 // patterns are matched with filepath.Glob; everything else is checked

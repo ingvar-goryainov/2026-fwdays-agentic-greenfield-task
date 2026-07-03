@@ -55,3 +55,15 @@ func (S003) Check(doc *lint.Document) []lint.Finding {
 	}
 	return findings
 }
+
+// Doc documents FR-S003 (FR-CLI-07).
+func (S003) Doc() lint.RuleDoc {
+	return lint.RuleDoc{
+		ID:          RuleS003,
+		Description: "Every agent block (a `###` heading under Agent(s)) must have a non-empty name, a role/description, and at least one of instructions, tools, or context.",
+		Severity:    lint.SeverityError,
+		Valid:       "### reviewer\n\nReviews pull requests.\n\n**Instructions:** Flag missing tests.\n",
+		Invalid:     "### reviewer\n\nReviews pull requests.\n",
+		FixGuidance: "Give the `###` heading a non-empty name, add a description paragraph or **Role:** field, and add at least one of **Instructions:**, **Tools:**, or **Context:**.",
+	}
+}

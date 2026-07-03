@@ -29,6 +29,23 @@ func TestKnownRuleIDs(t *testing.T) {
 	assert.Equal(t, want, rules.KnownRuleIDs())
 }
 
+func TestRuleDocs(t *testing.T) {
+	want := rules.KnownRuleIDs()
+	docs := rules.RuleDocs()
+
+	require.Len(t, docs, len(want))
+	for _, id := range want {
+		doc, ok := docs[id]
+		require.Truef(t, ok, "RuleDocs() missing entry for %s", id)
+		assert.Equal(t, id, doc.ID)
+		assert.NotEmpty(t, doc.Description, "%s: Description", id)
+		assert.NotEmpty(t, doc.Severity, "%s: Severity", id)
+		assert.NotEmpty(t, doc.Valid, "%s: Valid", id)
+		assert.NotEmpty(t, doc.Invalid, "%s: Invalid", id)
+		assert.NotEmpty(t, doc.FixGuidance, "%s: FixGuidance", id)
+	}
+}
+
 func TestRun_MissingFileShortCircuits(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "does-not-exist.md")
 

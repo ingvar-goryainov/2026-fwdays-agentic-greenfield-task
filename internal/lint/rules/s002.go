@@ -29,3 +29,15 @@ func (S002) Check(doc *lint.Document) []lint.Finding {
 		Message:  "missing required section — add a top-level `## Agent` or `## Agents` heading",
 	}}
 }
+
+// Doc documents FR-S002 (FR-CLI-07).
+func (S002) Doc() lint.RuleDoc {
+	return lint.RuleDoc{
+		ID:          RuleS002,
+		Description: "The document must have a top-level `## Agent` or `## Agents` section (case-insensitive), since that's where agents-lint locates agent definitions.",
+		Severity:    lint.SeverityError,
+		Valid:       "## Agents\n\n### reviewer\n...\n",
+		Invalid:     "## Overview\n\nNo Agent(s) section here.\n",
+		FixGuidance: "Add a top-level `## Agent` or `## Agents` heading to the file.",
+	}
+}
