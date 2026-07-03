@@ -14,17 +14,35 @@ import (
 
 const defaultAgentsMDPath = "./AGENTS.md"
 
+// formatText and formatSARIF are the only values validateFormat accepts
+// for --format (FR-CLI-05).
+const (
+	formatText  = "text"
+	formatSARIF = "sarif"
+)
+
+// validateFormat implements FR-CLI-05's validation: format must be
+// formatText or formatSARIF. It runs before any file I/O so an invalid
+// --format value fails fast with a clear, actionable error.
+func validateFormat(format string) error {
+	if format != formatText && format != formatSARIF {
+		return fmt.Errorf("unknown format %q: must be %q or %q", format, formatText, formatSARIF)
+	}
+	return nil
+}
+
 // runScan validates the AGENTS.md file resolved from argPath/configPath and
 // writes reporter-formatted output to w. It returns the process exit code
 // (FR-CLI-02) and never calls os.Exit itself, keeping it fully
 // unit-testable; the Cobra RunE wrapper owns the actual process exit.
 //
-// argPath is the raw positional argument ("" if omitted) and configPath is
-// the --config flag value ("" if omitted); runScan resolves the effective
-// config (FR-CFG-01/03, FR-CLI-04) and the effective scan path
+// argPath is the raw positional argument ("" if omitted), configPath is
+// the --config flag value ("" if omitted), and format is the resolved
+// --format value (formatText or formatSARIF); runScan resolves the
+// effective config (FR-CFG-01/03, FR-CLI-04) and the effective scan path
 // (FR-CFG-02) itself, since the precedence between them can't be decided
 // before the config is loaded.
-func runScan(w io.Writer, argPath, configPath string) (exitCode int, err error) {
+func runScan(w io.Writer, argPath, configPath, format string) (exitCode int, err error) {
 	cfg, cfgErr := config.Resolve(configPath, rules.KnownRuleIDs())
 	if cfgErr != nil {
 		return 1, cfgErr
@@ -38,8 +56,14 @@ func runScan(w io.Writer, argPath, configPath string) (exitCode int, err error) 
 	}
 	findings = cfg.Apply(findings)
 
-	ruleCount := effectiveRuleCount(cfg, rules.KnownRuleIDs())
-	if writeErr := reporter.WriteText(w, findings, ruleCount, reporter.Options{}); writeErr != nil {
+	var writeErr error
+	if format == formatSARIF {
+		writeErr = reporter.WriteSARIF(w, findings)
+	} else {
+		ruleCount := effectiveRuleCount(cfg, rules.KnownRuleIDs())
+		writeErr = reporter.WriteText(w, findings, ruleCount, reporter.Options{})
+	}
+	if writeErr != nil {
 		return 1, writeErr
 	}
 
@@ -93,12 +117,17 @@ var scanCmd = &cobra.Command{
 	Short: "Validate an AGENTS.md file against the schema",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := validateFormat(formatFlag); err != nil {
+			_, _ = fmt.Fprintln(cmd.ErrOrStderr(), err)
+			return err
+		}
+
 		argPath := ""
 		if len(args) > 0 {
 			argPath = args[0]
 		}
 
-		exitCode, err := runScan(cmd.OutOrStdout(), argPath, configFlag)
+		exitCode, err := runScan(cmd.OutOrStdout(), argPath, configFlag, formatFlag)
 		if err != nil {
 			_, _ = fmt.Fprintln(cmd.ErrOrStderr(), err)
 			return err

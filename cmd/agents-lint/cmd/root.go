@@ -15,6 +15,10 @@ var rootCmd = &cobra.Command{
 // set, overrides the default .agents-lint.yaml lookup location.
 var configFlag string
 
+// formatFlag holds the --format flag value (FR-CLI-05): selects the
+// output renderer ("text" or "sarif"), defaulting to "text".
+var formatFlag string
+
 // Execute runs the root command and returns any error encountered.
 func Execute() error {
 	return rootCmd.Execute()
@@ -22,4 +26,5 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFlag, "config", "", "path to the config file (default: ./.agents-lint.yaml)")
+	rootCmd.PersistentFlags().StringVar(&formatFlag, "format", "text", `output format: "text" or "sarif"`)
 }
