@@ -153,6 +153,36 @@ func TestParse_EmptyHeadingHasLineZero(t *testing.T) {
 	assert.Zero(t, doc.AgentBlocks[0].Line)
 }
 
+func TestParse_CodeSpansAcrossNesting(t *testing.T) {
+	content := `## Agents
+
+Paragraph mentions ` + "`internal/lint/rule.go`" + `.
+
+- List item references ` + "`go.mod`" + `
+
+> Blockquote references ` + "`Dockerfile`" + `
+`
+	path := writeFile(t, content)
+	doc, err := lint.Parse(path)
+	require.NoError(t, err)
+	require.Len(t, doc.CodeSpans, 3)
+
+	texts := []string{doc.CodeSpans[0].Text, doc.CodeSpans[1].Text, doc.CodeSpans[2].Text}
+	assert.ElementsMatch(t, []string{"internal/lint/rule.go", "go.mod", "Dockerfile"}, texts)
+	for _, cs := range doc.CodeSpans {
+		assert.NotZero(t, cs.Line)
+	}
+}
+
+func TestParse_CodeSpanInFrontmatterNotCollected(t *testing.T) {
+	content := "---\nkey: `not-a-real-span`\n---\n\n## Agents\n\nText with `real-span` here.\n"
+	path := writeFile(t, content)
+	doc, err := lint.Parse(path)
+	require.NoError(t, err)
+	require.Len(t, doc.CodeSpans, 1)
+	assert.Equal(t, "real-span", doc.CodeSpans[0].Text)
+}
+
 func TestParse_FrontmatterClosingDelimiterAtEOF(t *testing.T) {
 	content := "---\nkey: value\n---"
 	path := writeFile(t, content)

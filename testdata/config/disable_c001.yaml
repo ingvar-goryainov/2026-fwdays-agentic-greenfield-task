@@ -1,0 +1,3 @@
+rules:
+  C001:
+    enabled: false
