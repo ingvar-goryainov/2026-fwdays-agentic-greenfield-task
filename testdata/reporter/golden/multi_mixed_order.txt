@@ -1,0 +1,4 @@
+error  S005  AGENTS.md:1 — frontmatter is not valid YAML
+error  S002  AGENTS.md:5 — missing ## Agents section
+warning  S004  AGENTS.md:20 — duplicate agent name "architect"
+2 error(s), 1 warning(s)

@@ -1,0 +1,2 @@
+error  S002  AGENTS.md:3 — missing ## Agents section
+1 error(s), 0 warning(s)

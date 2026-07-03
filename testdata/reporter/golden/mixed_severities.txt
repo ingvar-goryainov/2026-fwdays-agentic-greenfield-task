@@ -1,0 +1,4 @@
+error  S002  AGENTS.md:3 — missing ## Agents section
+error  S003  AGENTS.md:9 — agent block "tester" has no role
+warning  C002  AGENTS.md:15 — tool "kubectl" has no evidence in repo
+2 error(s), 1 warning(s)

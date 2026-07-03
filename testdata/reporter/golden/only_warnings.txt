@@ -1,0 +1,4 @@
+warning  C002  AGENTS.md:15 — tool "kubectl" has no evidence in repo
+warning  C002  AGENTS.md:22 — tool "terraform" has no evidence in repo
+warning  C002  AGENTS.md:30 — tool "npm" has no evidence in repo
+0 error(s), 3 warning(s)
