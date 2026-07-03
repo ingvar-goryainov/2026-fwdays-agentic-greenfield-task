@@ -73,7 +73,7 @@ func TestEffectiveRuleCount(t *testing.T) {
 func TestRunScan_Config(t *testing.T) {
 	t.Run("disabling a rule removes its finding and reduces the rule count", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/disable_s004.yaml")
+		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/disable_s004.yaml", formatText)
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		// 7 known rules (S001-S005, C001, C002) minus the disabled S004.
@@ -82,7 +82,7 @@ func TestRunScan_Config(t *testing.T) {
 
 	t.Run("disabling C001 suppresses its finding end-to-end", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/C001/invalid.md", "../../../testdata/config/disable_c001.yaml")
+		exitCode, err := runScan(&buf, "../../../testdata/C001/invalid.md", "../../../testdata/config/disable_c001.yaml", formatText)
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		assert.NotContains(t, buf.String(), "C001")
@@ -90,7 +90,7 @@ func TestRunScan_Config(t *testing.T) {
 
 	t.Run("severity override to warning changes exit code from 1 to 0", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/severity_s004_warning.yaml")
+		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/severity_s004_warning.yaml", formatText)
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		assert.Contains(t, buf.String(), "warning  S004")
@@ -103,7 +103,7 @@ func TestRunScan_Config(t *testing.T) {
 		t.Chdir("../../..")
 
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "", "testdata/config/path_override.yaml")
+		exitCode, err := runScan(&buf, "", "testdata/config/path_override.yaml", formatText)
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		assert.Contains(t, buf.String(), "AGENTS.md is valid")
@@ -111,7 +111,7 @@ func TestRunScan_Config(t *testing.T) {
 
 	t.Run("a positional argument still overrides config path", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/path_override.yaml")
+		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/path_override.yaml", formatText)
 		require.NoError(t, err)
 		assert.Equal(t, 1, exitCode)
 		assert.Contains(t, buf.String(), "S004")
@@ -119,7 +119,7 @@ func TestRunScan_Config(t *testing.T) {
 
 	t.Run("invalid config file returns an error without writing reporter output", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md", "../../../testdata/config/unknown_rule_id.yaml")
+		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md", "../../../testdata/config/unknown_rule_id.yaml", formatText)
 		assert.Error(t, err)
 		assert.Equal(t, 1, exitCode)
 		assert.Empty(t, buf.String())
@@ -127,7 +127,7 @@ func TestRunScan_Config(t *testing.T) {
 
 	t.Run("missing --config path returns an error", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md", "../../../testdata/config/does-not-exist.yaml")
+		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md", "../../../testdata/config/does-not-exist.yaml", formatText)
 		assert.Error(t, err)
 		assert.Equal(t, 1, exitCode)
 		assert.Empty(t, buf.String())
