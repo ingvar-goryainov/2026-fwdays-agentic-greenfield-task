@@ -1,0 +1,1 @@
+✓ AGENTS.md is valid (5 rules passed)
