@@ -1,6 +1,6 @@
 ## MODIFIED Requirements
 
-### Requirement: Scan output uses the resolved format's reporter
+### Requirement: Scan output uses the text reporter
 `agents-lint scan` SHALL render its findings using the reporter selected by the resolved `--format` value (FR-CLI-05): `text` (the default) SHALL use `internal/reporter.WriteText`, passing the total number of rules evaluated (`len(rules.DefaultRules()) + 1`) as the `ruleCount` argument, so the command's stdout output matches the FR-OUT-01/02/04 format; `sarif` SHALL use `internal/reporter.WriteSARIF` (FR-OUT-03). The choice of format SHALL NOT change which findings are produced or the FR-CLI-02 exit-code decision.
 
 #### Scenario: Findings rendered in text reporter format by default
