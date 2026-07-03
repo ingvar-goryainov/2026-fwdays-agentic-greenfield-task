@@ -35,3 +35,14 @@ func Run(path string) ([]lint.Finding, error) {
 	}
 	return findings, nil
 }
+
+// KnownRuleIDs returns every rule ID Run evaluates, including S001 (which
+// runs outside the Rule interface). Used by configuration-support to
+// validate rule IDs referenced in .agents-lint.yaml.
+func KnownRuleIDs() []string {
+	ids := []string{RuleS001}
+	for _, r := range DefaultRules() {
+		ids = append(ids, r.ID())
+	}
+	return ids
+}

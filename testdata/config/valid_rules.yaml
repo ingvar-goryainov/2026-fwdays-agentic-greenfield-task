@@ -1,0 +1,5 @@
+rules:
+  S004:
+    enabled: false
+  S002:
+    severity: warning

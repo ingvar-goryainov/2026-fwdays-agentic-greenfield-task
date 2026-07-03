@@ -26,7 +26,7 @@ func (failingWriter) Write([]byte) (int, error) {
 func TestRunScan(t *testing.T) {
 	t.Run("clean file exits 0", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md")
+		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md", "")
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		assert.Contains(t, buf.String(), "AGENTS.md is valid")
@@ -34,7 +34,7 @@ func TestRunScan(t *testing.T) {
 
 	t.Run("error-severity finding exits 1", func(t *testing.T) {
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/S002/invalid.md")
+		exitCode, err := runScan(&buf, "../../../testdata/S002/invalid.md", "")
 		require.NoError(t, err)
 		assert.Equal(t, 1, exitCode)
 		assert.Contains(t, buf.String(), "S002")
@@ -55,14 +55,14 @@ func TestRunScan(t *testing.T) {
 		t.Cleanup(func() { _ = os.Chmod(path, 0o644) })
 
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, path)
+		exitCode, err := runScan(&buf, path, "")
 		assert.Error(t, err)
 		assert.Equal(t, 1, exitCode)
 		assert.Empty(t, buf.String(), "no reporter output should be written on an unexpected error")
 	})
 
 	t.Run("reporter write failure is propagated", func(t *testing.T) {
-		exitCode, err := runScan(failingWriter{}, "../../../testdata/S003/valid.md")
+		exitCode, err := runScan(failingWriter{}, "../../../testdata/S003/valid.md", "")
 		assert.Error(t, err)
 		assert.Equal(t, 1, exitCode)
 	})
@@ -78,7 +78,7 @@ func TestRunScan_OutputMatchesReporter(t *testing.T) {
 	require.NoError(t, reporter.WriteText(&want, findings, len(rules.DefaultRules())+1, reporter.Options{}))
 
 	var got bytes.Buffer
-	_, err = runScan(&got, path)
+	_, err = runScan(&got, path, "")
 	require.NoError(t, err)
 
 	assert.Equal(t, want.String(), got.String())

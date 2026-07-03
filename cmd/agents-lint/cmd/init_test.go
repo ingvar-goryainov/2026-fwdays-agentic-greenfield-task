@@ -97,7 +97,7 @@ func TestRunInit_ThenScan(t *testing.T) {
 	require.NoError(t, reporter.WriteText(&scanBuf, findings, len(rules.DefaultRules())+1, reporter.Options{}))
 	assert.Contains(t, scanBuf.String(), "AGENTS.md is valid")
 
-	scanExitCode, scanErr := runScan(&bytes.Buffer{}, path)
+	scanExitCode, scanErr := runScan(&bytes.Buffer{}, path, "")
 	require.NoError(t, scanErr)
 	assert.Equal(t, 0, scanExitCode)
 }
