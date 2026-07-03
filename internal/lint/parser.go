@@ -38,6 +38,15 @@ type AgentBlock struct {
 	HasContext      bool
 }
 
+// CodeSpan is a single backtick-delimited inline-code span found anywhere
+// in the document body, regardless of nesting (heading, paragraph, list
+// item, blockquote, etc.). Codebase-awareness rules (C001/C002) inspect
+// these to detect file-path and tool/command references.
+type CodeSpan struct {
+	Text string
+	Line int
+}
+
 // Document is the structural model rules operate on. It is produced once
 // by Parse and never exposes the underlying goldmark AST, so rule
 // implementations never need to import goldmark themselves.
@@ -46,6 +55,7 @@ type Document struct {
 	Frontmatter *Frontmatter
 	H2Sections  []Heading
 	AgentBlocks []AgentBlock
+	CodeSpans   []CodeSpan
 }
 
 // Parse reads the AGENTS.md file at path and builds a Document from it.
@@ -62,6 +72,7 @@ func Parse(path string) (*Document, error) {
 
 	doc := &Document{Path: path, Frontmatter: frontmatter}
 	populateSections(doc, root, body)
+	populateCodeSpans(doc, root, body)
 	return doc, nil
 }
 
@@ -184,6 +195,57 @@ func populateSections(doc *Document, root ast.Node, src []byte) {
 		}
 	}
 	flushBlock()
+}
+
+// populateCodeSpans walks the entire document tree (not just top-level
+// children, unlike populateSections) collecting every inline-code span's
+// text and line number, so codebase-awareness rules see spans regardless
+// of where they're nested (list items, blockquotes, table cells, etc.).
+func populateCodeSpans(doc *Document, root ast.Node, src []byte) {
+	_ = ast.Walk(root, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+		cs, ok := n.(*ast.CodeSpan)
+		if !ok {
+			return ast.WalkContinue, nil
+		}
+		text := nodeText(cs, src)
+		if text != "" {
+			doc.CodeSpans = append(doc.CodeSpans, CodeSpan{Text: text, Line: codeSpanLine(cs, src)})
+		}
+		return ast.WalkSkipChildren, nil
+	})
+}
+
+// codeSpanLine returns the line number of a code span's first text
+// segment. Inline nodes (unlike block nodes) don't carry .Lines(), so this
+// walks into the span's children to find the first *ast.Text segment's
+// start offset, converting it with the same lineNumber helper nodeText
+// relies on for text extraction.
+func codeSpanLine(n *ast.CodeSpan, src []byte) int {
+	pos := -1
+	var walk func(ast.Node)
+	walk = func(n ast.Node) {
+		if pos != -1 {
+			return
+		}
+		if t, ok := n.(*ast.Text); ok {
+			pos = t.Segment.Start
+			return
+		}
+		for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+			walk(c)
+			if pos != -1 {
+				return
+			}
+		}
+	}
+	walk(n)
+	if pos == -1 {
+		return 0
+	}
+	return lineNumber(src, pos)
 }
 
 func isAgentSectionTitle(headingText string) bool {

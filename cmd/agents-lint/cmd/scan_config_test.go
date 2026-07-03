@@ -76,7 +76,16 @@ func TestRunScan_Config(t *testing.T) {
 		exitCode, err := runScan(&buf, "../../../testdata/config/s004_only.md", "../../../testdata/config/disable_s004.yaml")
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
-		assert.Contains(t, buf.String(), "AGENTS.md is valid (4 rules passed)")
+		// 7 known rules (S001-S005, C001, C002) minus the disabled S004.
+		assert.Contains(t, buf.String(), "AGENTS.md is valid (6 rules passed)")
+	})
+
+	t.Run("disabling C001 suppresses its finding end-to-end", func(t *testing.T) {
+		var buf bytes.Buffer
+		exitCode, err := runScan(&buf, "../../../testdata/C001/invalid.md", "../../../testdata/config/disable_c001.yaml")
+		require.NoError(t, err)
+		assert.Equal(t, 0, exitCode)
+		assert.NotContains(t, buf.String(), "C001")
 	})
 
 	t.Run("severity override to warning changes exit code from 1 to 0", func(t *testing.T) {
@@ -88,8 +97,13 @@ func TestRunScan_Config(t *testing.T) {
 	})
 
 	t.Run("config path is used when no positional argument is given", func(t *testing.T) {
+		// path_override.yaml's path: is repo-root-relative (testdata/S003/valid.md,
+		// which C001 must resolve against the repo root), so chdir there — the
+		// same convention a real `agents-lint scan` run from the repo root uses.
+		t.Chdir("../../..")
+
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "", "../../../testdata/config/path_override.yaml")
+		exitCode, err := runScan(&buf, "", "testdata/config/path_override.yaml")
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		assert.Contains(t, buf.String(), "AGENTS.md is valid")

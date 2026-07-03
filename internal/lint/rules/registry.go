@@ -1,6 +1,11 @@
 package rules
 
-import "github.com/ingvar-goryainov/agents-lint/internal/lint"
+import (
+	"fmt"
+	"os"
+
+	"github.com/ingvar-goryainov/agents-lint/internal/lint"
+)
 
 // DefaultRules returns the schema rules in a fixed, deterministic order
 // (S002, S003, S004, S005). S001 is run separately by Run, since it checks
@@ -14,11 +19,22 @@ func DefaultRules() []lint.Rule {
 	}
 }
 
+// CodebaseAwareRules returns the codebase-awareness rules (C001, C002) in
+// a fixed, deterministic order. They run after the schema rules, against
+// the same parsed Document, since they need it too.
+func CodebaseAwareRules() []lint.CodebaseRule {
+	return []lint.CodebaseRule{
+		C001{},
+		C002{},
+	}
+}
+
 // Run validates the AGENTS.md file at path: it checks file existence
 // first (S001) and, only if that succeeds, parses the file and runs the
-// remaining schema rules against it. A non-nil error indicates a problem
-// unrelated to the file simply not existing (e.g. a read/parse failure);
-// schema violations are reported as Findings, not errors.
+// remaining schema rules and the codebase-awareness rules against it. A
+// non-nil error indicates a problem unrelated to the file simply not
+// existing (e.g. a read/parse failure); rule violations are reported as
+// Findings, not errors.
 func Run(path string) ([]lint.Finding, error) {
 	if finding := CheckFileExists(path); finding != nil {
 		return []lint.Finding{*finding}, nil
@@ -33,6 +49,14 @@ func Run(path string) ([]lint.Finding, error) {
 	for _, rule := range DefaultRules() {
 		findings = append(findings, rule.Check(doc)...)
 	}
+
+	repoRoot, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("rules: resolving repo root: %w", err)
+	}
+	for _, rule := range CodebaseAwareRules() {
+		findings = append(findings, rule.Check(doc, repoRoot)...)
+	}
 	return findings, nil
 }
 
@@ -42,6 +66,9 @@ func Run(path string) ([]lint.Finding, error) {
 func KnownRuleIDs() []string {
 	ids := []string{RuleS001}
 	for _, r := range DefaultRules() {
+		ids = append(ids, r.ID())
+	}
+	for _, r := range CodebaseAwareRules() {
 		ids = append(ids, r.ID())
 	}
 	return ids

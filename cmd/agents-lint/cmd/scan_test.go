@@ -25,8 +25,13 @@ func (failingWriter) Write([]byte) (int, error) {
 
 func TestRunScan(t *testing.T) {
 	t.Run("clean file exits 0", func(t *testing.T) {
+		// S003/valid.md references `docs/requirements.md`, which C001 must
+		// resolve against the repo root, so chdir there — the same
+		// convention a real `agents-lint scan` run from the repo root uses.
+		t.Chdir("../../..")
+
 		var buf bytes.Buffer
-		exitCode, err := runScan(&buf, "../../../testdata/S003/valid.md", "")
+		exitCode, err := runScan(&buf, "testdata/S003/valid.md", "")
 		require.NoError(t, err)
 		assert.Equal(t, 0, exitCode)
 		assert.Contains(t, buf.String(), "AGENTS.md is valid")
@@ -38,6 +43,14 @@ func TestRunScan(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 1, exitCode)
 		assert.Contains(t, buf.String(), "S002")
+	})
+
+	t.Run("C001 finding is reported in FR-OUT-01 format and exits 1", func(t *testing.T) {
+		var buf bytes.Buffer
+		exitCode, err := runScan(&buf, "../../../testdata/C001/invalid.md", "")
+		require.NoError(t, err)
+		assert.Equal(t, 1, exitCode)
+		assert.Contains(t, buf.String(), "error  C001  ../../../testdata/C001/invalid.md:")
 	})
 
 	t.Run("unreadable file reports an error and exits 1", func(t *testing.T) {

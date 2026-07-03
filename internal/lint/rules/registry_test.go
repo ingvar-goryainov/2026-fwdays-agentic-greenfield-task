@@ -24,6 +24,7 @@ func TestDefaultRules_FixedOrder(t *testing.T) {
 func TestKnownRuleIDs(t *testing.T) {
 	want := []string{
 		rules.RuleS001, rules.RuleS002, rules.RuleS003, rules.RuleS004, rules.RuleS005,
+		rules.RuleC001, rules.RuleC002,
 	}
 	assert.Equal(t, want, rules.KnownRuleIDs())
 }
@@ -52,7 +53,14 @@ func TestRun_ExistingFileRunsAllRules(t *testing.T) {
 }
 
 func TestRun_CleanFileHasNoFindings(t *testing.T) {
-	findings, err := rules.Run("../../../testdata/S003/valid.md")
+	// testdata/S003/valid.md contains a `docs/requirements.md` code span
+	// that C001 must resolve relative to the repo root, so chdir there
+	// (repoRoot, from c001_test.go) instead of using a package-relative
+	// fixture path — the same convention a real `agents-lint scan` run
+	// from the repo root uses.
+	t.Chdir(repoRoot)
+
+	findings, err := rules.Run("testdata/S003/valid.md")
 	require.NoError(t, err)
 	assert.Empty(t, findings)
 }
@@ -74,6 +82,32 @@ func TestRun_UnreadableFilePropagatesError(t *testing.T) {
 	findings, err := rules.Run(path)
 	assert.Error(t, err)
 	assert.Nil(t, findings)
+}
+
+func TestRun_CodebaseAwareRulesUseWorkingDirectoryAsRepoRoot(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module example\n"), 0o644))
+	content := "## Agents\n\n### maintainer\n\nKeeps things tidy.\n\n" +
+		"**Context:** `go.mod` and `missing/file.go`. Built with `go`.\n"
+	require.NoError(t, writeTestFile(filepath.Join(dir, "AGENTS.md"), content))
+
+	t.Chdir(dir)
+
+	findings, err := rules.Run("AGENTS.md")
+	require.NoError(t, err)
+
+	var gotC001, gotC002 bool
+	for _, f := range findings {
+		switch f.RuleID {
+		case rules.RuleC001:
+			gotC001 = true
+			assert.Contains(t, f.Message, "missing/file.go")
+		case rules.RuleC002:
+			gotC002 = true
+		}
+	}
+	assert.True(t, gotC001, "expected a C001 finding for the missing path")
+	assert.False(t, gotC002, "go.mod evidence in the chdir'd directory should suppress a C002 finding for `go`")
 }
 
 func TestRun_AggregatesInFixedOrder(t *testing.T) {
