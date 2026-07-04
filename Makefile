@@ -1,4 +1,4 @@
-.PHONY: build test lint release clean
+.PHONY: build test lint release clean docker-build docker-run
 
 build:
 	go build ./cmd/agents-lint
@@ -19,3 +19,15 @@ release:
 
 clean:
 	rm -rf dist
+
+# Container image (NFR-DIST-02). VERSION is threaded into the same -ldflags
+# the release target uses, so `--version` inside the container is meaningful
+# when built with `make docker-build VERSION=vX.Y.Z`.
+VERSION ?= dev
+
+docker-build:
+	docker build --build-arg VERSION=$(VERSION) -t agents-lint .
+
+# Example: scans the current directory's AGENTS.md via the container.
+docker-run:
+	docker run --rm -v $(CURDIR):/workspace agents-lint scan
