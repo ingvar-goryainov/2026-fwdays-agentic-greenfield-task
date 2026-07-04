@@ -1,6 +1,6 @@
 # PRD — agents-lint
 
-Last updated: 2026-06-30
+Last updated: 2026-07-04
 
 This document is the **single source of truth** for what the product does and
 what constraints govern it. Every requirement has a stable ID. Specs, tests,
@@ -83,6 +83,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | NFR-DX-01   | `go build ./cmd/agents-lint` completes in < 10 s on a clean checkout                                | proposed |
 | NFR-DX-02   | README includes: installation, usage, rule catalog, configuration reference                          | accepted |
 | NFR-DIST-01 | Single statically-linked binary per platform (linux/amd64, darwin/arm64 at minimum)                  | proposed |
+| NFR-DIST-02 | A Docker image is buildable from a repo-root `Dockerfile` that packages the `agents-lint` binary; running the container mounts a host directory and invokes `scan` against it, exiting with the same codes as the native binary | proposed |
 
 ---
 

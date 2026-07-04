@@ -1,0 +1,11 @@
+.git/
+.github/
+.claude/
+.code-review-graph/
+openspec/
+dist/
+docs/
+testdata/
+*.md
+.dockerignore
+Dockerfile

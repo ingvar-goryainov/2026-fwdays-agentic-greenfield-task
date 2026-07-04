@@ -168,6 +168,19 @@ reference. Wraps up the MVP.
 
 ---
 
+### 12. `docker-packaging`
+A `Dockerfile` and Makefile targets that build a minimal container image
+around the same static binary `packaging-and-docs` produces, so `agents-lint`
+can run with no Go toolchain installed.
+
+| Requirements | Status |
+|---|---|
+| NFR-DIST-02 (Docker image, container run behavior matches native binary) | proposed |
+
+**Depends on:** `packaging-and-docs` (reuses its static-binary build flags and version-injection convention).
+
+---
+
 ## Cross-cutting (apply inside every capability, not standalone)
 
 | Requirement | How to apply |

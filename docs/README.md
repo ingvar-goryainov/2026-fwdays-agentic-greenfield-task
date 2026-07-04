@@ -27,6 +27,14 @@ cp dist/agents-lint-darwin-arm64 /usr/local/bin/agents-lint
 go install github.com/ingvar-goryainov/agents-lint/cmd/agents-lint@latest
 ```
 
+**Or build a Docker image.** No Go toolchain required on the host — only
+Docker:
+
+```bash
+make docker-build                          # builds the `agents-lint` image
+make docker-build VERSION=v1.0.0            # bake a specific version into --version
+```
+
 ## Usage
 
 ### `scan` — validate an AGENTS.md file
@@ -69,6 +77,24 @@ failing example, and fix guidance.
 ```bash
 agents-lint --version
 ```
+
+### Running via Docker
+
+Mount the project directory to `/workspace` and pass the subcommand exactly
+as you would to the native binary:
+
+```bash
+docker run --rm -v $(pwd):/workspace agents-lint scan
+docker run --rm -v $(pwd):/workspace agents-lint scan --format sarif
+docker run --rm -v $(pwd):/workspace agents-lint scan --config custom.agents-lint.yaml
+```
+
+`make docker-run` runs the same `scan` example against the current
+directory. Exit codes match the native binary exactly (`FR-CLI-02`).
+
+The runtime image is built from `gcr.io/distroless/static-debian12` and
+contains only the `agents-lint` binary — there is no shell, so debug via the
+container's output/exit code (`docker run`), not `docker exec`.
 
 ## Rule catalog
 
