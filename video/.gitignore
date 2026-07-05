@@ -1,0 +1,7 @@
+node_modules/
+out/
+tmp_music/
+
+# Generated audio (regenerate with the scripts below):
+public/*.mp3
+public/narration/
