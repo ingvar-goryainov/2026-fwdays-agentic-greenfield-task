@@ -13,6 +13,14 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
+  # Фокусуємо рев'ю на коді/тестах/демо і не роздуваємо число файлів
+  # процесними артефактами (OpenSpec-специфікації, agent-тулінг) — інакше PR
+  # перевищує ліміт CodeRabbit на кількість файлів і рев'ю пропускається.
+  # Ці артефакти лишаються у PR для людини-рецензента, просто не йдуть у бота.
+  path_filters:
+    - "!openspec/changes/**"
+    - "!openspec/specs/**"
+    - "!.claude/**"
   path_instructions:
     - path: "**"
       instructions: >-
